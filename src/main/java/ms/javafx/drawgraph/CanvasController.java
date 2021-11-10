@@ -1,52 +1,91 @@
 package ms.javafx.drawgraph;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class CanvasController implements Initializable {
-    @FXML private Button finBtn;
     @FXML private Group canvasGrp;
+    @FXML private Button finBtn;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         canvasGrp.setOnMouseClicked(this::handleCanvasClick);
-        finBtn.setOnMouseClicked(e -> makeGraph());
+        finBtn.setOnAction(e -> handleBtnDone());
     }
 
     public void handleCanvasClick(MouseEvent e) {
-        if (Node.nodeClicked) {
-
-            //draw edge
-            if (Node.selectedNodes.size() == 2) {
-                System.out.println("Draw Edge");
-
-                Node src = Node.selectedNodes.get(0);
-                Node dest = Node.selectedNodes.get(1);
-                Edge edge = new Edge(src, dest);
-
-                canvasGrp.getChildren().add(edge.weightLabel);
-                canvasGrp.getChildren().add(edge.line);
-
-                Node.clearSelected();
+        //left click on existed node
+        if (NodeFx.isPrimaryClicked) {
+            if(NodeFx.selectedNodes.size() == 2) {
+                drawEdge();
             }
-
-            //non-empty space clicked
-            Node.nodeClicked = false;
             return;
         }
-
+        //right click on existed node
+        if(NodeFx.isSecondaryClicked && NodeFx.toRemove != null) {
+            remove();
+            return;
+        }
+        //right click on empty space
+        if(e.getButton() == MouseButton.SECONDARY) {
+            return;
+        }
+        //left click on empty space
         //draw node
-        Node node = new Node(e.getX(), e.getY());
+        NodeFx node = new NodeFx(e.getX(), e.getY());
         canvasGrp.getChildren().add(node);
         canvasGrp.getChildren().add(node.id);
     }
 
-    public void makeGraph() {
+    public void handleBtnDone() {
+        Graph graph = new Graph();
+        System.out.println("Make Graph");
+    }
+
+    private void drawEdge() {
+        System.out.println("Draw Edge");
+
+        NodeFx src = NodeFx.selectedNodes.get(0);
+        NodeFx dest = NodeFx.selectedNodes.get(1);
+        EdgeFx edge = new EdgeFx(src, dest);
+
+        canvasGrp.getChildren().add(edge.weightLabel);
+        canvasGrp.getChildren().add(edge.line);
+
+        NodeFx.clearSelected();
+
+        NodeFx.isPrimaryClicked = false;
+    }
+
+    private void remove() {
+        //remove node
+        canvasGrp.getChildren().remove(NodeFx.toRemove);
+        canvasGrp.getChildren().remove(NodeFx.toRemove.id);
+
+        //remove edge
+        List<EdgeFx> removedEdgeList = EdgeFx.edgeList.stream()
+                .filter(edge -> edge.source.id == NodeFx.toRemove.id || edge.target.id == NodeFx.toRemove.id)
+                .toList();
+        for(EdgeFx ef : removedEdgeList) {
+            canvasGrp.getChildren().remove(ef.weightLabel);
+            canvasGrp.getChildren().remove(ef.line);
+            EdgeFx.edgeList.remove(ef);
+        }
+
+        NodeFx.isSecondaryClicked = false;
+        NodeFx.toRemove = null;
     }
 }
