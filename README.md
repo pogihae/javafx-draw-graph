@@ -1,5 +1,5 @@
 # Draw Graph
-This javafx application make graph with mouse click. Graph for weighted and undirect, weight is auto calculated by distance. When click 'Done' button, Graph instance is created.
+This javafx application make graph with mouse click. Graph for weighted and undirect, weight is auto calculated by distance. When 'Fin' clicked, Graph instance is created.
 
 ## Requirement
 - JavaFx 17 (I used, other version may be allowed)
